@@ -112,12 +112,12 @@ fn handle_single_command(cmd: Command) {
         Ok(ForkResult::Parent { child }) => {
             match waitpid(child, None).expect("Failed to wait for child") {
                 WaitStatus::Exited(pid, status) => {
-                    println!("[oh-my-shell] Child process terminated: pid {}, status {}", pid, status);
+                    println!("\n[oh-my-shell] Child process terminated: pid {}, status {}", pid, status);
                 }
                 WaitStatus::Signaled(pid, signal, _) => {
-                    println!("[oh-my-shell] Child process terminated by signal: pid {}, signal {:?}", pid, signal);
+                    println!("\n[oh-my-shell] Child process terminated by signal: pid {}, signal {:?}", pid, signal);
                 }
-                _ => println!("[oh-my-shell] Child process ended unexpectedly."),
+                _ => println!("\n[oh-my-shell] Child process ended unexpectedly."),
             }
         }
         Err(e) => eprintln!("Fork failed: {}", e),
