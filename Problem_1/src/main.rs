@@ -5,7 +5,7 @@ use std::io::{self, Write};
 use std::os::fd::AsRawFd;
 use std::os::unix::io::{RawFd, IntoRawFd};
 use std::fs::File;
-use std::env; // cd 명령을 위해 추가
+use std::env; 
 
 #[derive(Debug)]
 enum InputType {
@@ -296,8 +296,28 @@ fn handle_pipes(commands: Vec<Command>) {
             Err(e) => eprintln!("Fork failed: {}", e),
         }
     }
+    if let Some(fd) = prev_pipe {
+        close(fd).expect("Failed to close last pipe read end in parent");
+    }
 
-    for child in children {
-        waitpid(child, None).expect("Failed to wait for child");
+
+    // 모든 자식의 종료 상태를 여기서 수집
+    let mut results = Vec::new();
+    for child in &children {
+        let status = waitpid(*child, None).expect("Failed to wait for child");
+        results.push(status);
+    }
+
+
+    for status in results {
+        match status {
+            WaitStatus::Exited(pid, code) => {
+                println!("[oh-my-shell] Child process terminated: pid {}, status {}", pid, code);
+            }
+            WaitStatus::Signaled(pid, signal, _) => {
+                println!("[oh-my-shell] Child process terminated by signal: pid {}, signal {:?}", pid, signal);
+            }
+            _ => println!("[oh-my-shell] Child process ended unexpectedly."),
+        }
     }
 }
